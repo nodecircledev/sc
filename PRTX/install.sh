@@ -189,9 +189,9 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 
-echo -e "How many nodes are you wanting to setup?"
+echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
 read -e NODES
-if [[NODES==1]]; then
+if [[NODES -eq 1]]; then
   if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
     echo -e "${RED}$COIN_NAME is already installed.${NC}"
     exit 1
@@ -273,20 +273,21 @@ clear
 
 checks
 if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
+echo "PRTX installed with Daemon moving on to set up other nodes if wanted."
 else
   prepare_system
   download_node
   setup_node
 fi
 
-if [NODES==2]||[NODES==3]; then
+if [NODES -eq 2]||[NODES -eq 3]; then
   CONFIGFOLDER='/root/.Printex2'
   COIN_NAME=Printex2
   setup_node
   setup_check
 fi
 
-if [NODES==3];then
+if [NODES -eq 3];then
 CONFIGFOLDER='/root/.Printex3'
 setup_node
 COIN_NAME=Printex3
