@@ -12,6 +12,8 @@ COIN_NAME='Printex'
 COIN_PID='printex.pid'
 COIN_PORT=9797
 RPC_PORT=9898
+NODES=0
+
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -187,9 +189,14 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
-  echo -e "${RED}$COIN_NAME is already installed.${NC}"
-  exit 1
+fi
+echo -e "How many nodes are you wanting to setup?"
+read -e NODES
+if [[NODES==1]]; then
+  if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
+    echo -e "${RED}$COIN_NAME is already installed.${NC}"
+    exit 1
+  fi
 fi
 }
 
@@ -251,11 +258,40 @@ function setup_node() {
   configure_systemd
 }
 
+function setup_check(){
+sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/check
+  cat << EOF >> $CONFIGFOLDER/check
+printex-cli -daemon -conf=/root/$CONFIGFOLDER/$printex.conf
+EOF
+}
+
+}
+
 
 ##### Main #####
 clear
 
 checks
-prepare_system
-download_node
+if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
+else
+  prepare_system
+  download_node
+  setup_node
+fi
+
+if [NODES==2]||[NODES==3]; then
+  CONFIGFOLDER='/root/.Printex2'
+  COIN_NAME=Printex2
+  setup_node
+  setup_check
+fi
+
+if [NODES==3];then
+CONFIGFOLDER='/root/.Printex3'
 setup_node
+COIN_NAME=Printex3
+setup_check
+fi
+
+
+
