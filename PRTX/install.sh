@@ -287,7 +287,7 @@ if [ $NODES = 2 ] || [ $NODES = 3 ]; then
   setup_check
 fi
 
-if [ $NODES =3 ];then
+if [ $NODES = 3 ];then
 CONFIGFOLDER='/root/.Printex3'
 setup_node
 COIN_NAME=Printex3
