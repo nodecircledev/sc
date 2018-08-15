@@ -261,7 +261,7 @@ function setup_node() {
 function setup_check(){
 sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/check
   cat << EOF >> $CONFIGFOLDER/check
-printex-cli -daemon -conf=/root/$CONFIGFOLDER/$printex.conf
+printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
 EOF
 }
 
