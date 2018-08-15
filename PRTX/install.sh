@@ -14,14 +14,11 @@ COIN_PORT=9797
 RPC_PORT=9898
 NODES=0
 
-
 NODEIP=$(curl -s4 api.ipify.org)
-
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
-
 
 function download_node() {
   echo -e "Prepare to download ${GREEN}$COIN_NAME${NC}."
@@ -35,7 +32,6 @@ function download_node() {
   rm -rf $TMP_FOLDER >/dev/null 2>&1
   clear
 }
-
 
 
 function configure_systemd() {
@@ -96,6 +92,7 @@ port=$COIN_PORT
 EOF
 }
 
+
 function create_key() {
   echo -e "Enter your ${RED}$COIN_NAME Masternode Private Key${NC}. Leave it blank to generate a new ${RED}Masternode Private Key${NC} for you:"
   read -e COINKEY
@@ -117,6 +114,7 @@ function create_key() {
 fi
 clear
 }
+
 
 function update_config() {
   sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/$CONFIG_FILE
@@ -201,6 +199,7 @@ if [[NODES==1]]; then
 fi
 }
 
+
 function prepare_system() {
 echo -e "Prepare the system to install ${GREEN}$COIN_NAME${NC} master node."
 apt-get update >/dev/null 2>&1
@@ -229,6 +228,7 @@ bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw pkg-config libevent
 fi
 clear
 }
+
 
 function important_information() {
  echo -e "================================================================================================================================"
@@ -265,7 +265,6 @@ sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/check
 printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
 EOF
 }
-
 
 
 
