@@ -37,6 +37,7 @@ function download_node() {
 }
 
 
+
 function configure_systemd() {
   cat << EOF > /etc/systemd/system/$COIN_NAME.service
 [Unit]
