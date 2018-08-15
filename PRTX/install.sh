@@ -266,7 +266,7 @@ printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFI
 EOF
 }
 
-}
+
 
 
 ##### Main #####
