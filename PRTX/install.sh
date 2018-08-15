@@ -189,7 +189,7 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-fi
+
 echo -e "How many nodes are you wanting to setup?"
 read -e NODES
 if [[NODES==1]]; then
