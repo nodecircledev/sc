@@ -296,15 +296,16 @@ fi
 
 if [ $NODES = 2 ] || [ $NODES = 3 ]; then
   CONFIGFOLDER='/root/.printex2'
-  cpstuff()
+  cpstuff
   setup_node2
   setup_check
 fi
 
 if [ $NODES = 3 ];then
-CONFIGFOLDER='/root/.printex3'
-setup_node2
-setup_check
+  CONFIGFOLDER='/root/.printex3'
+  cpstuff
+  setup_node2
+  setup_check
 fi
 
 
