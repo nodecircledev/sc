@@ -272,7 +272,7 @@ function setup_node2(){
 
 function setup_check(){
 cat << EOF > $CONFIGFOLDER/$RUN_FILE
-printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER getinfo
+printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER getinfo
 EOF
 }
 
