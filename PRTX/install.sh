@@ -228,6 +228,7 @@ clear
 }
 
 
+
 function important_information() {
  echo -e "================================================================================================================================"
  echo -e "$COIN_NAME Masternode is up and running listening on port ${RED}$COIN_PORT${NC}."
