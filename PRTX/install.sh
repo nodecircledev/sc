@@ -258,16 +258,21 @@ function setup_node() {
 }
 
 function setup_node2(){
+  cpstuff
+  setup_check
   create_config
   create_key
   update_config
   important_information
+  configure_systemd
+  
 }
 
 function setup_check(){
   cat << EOF >> $CONFIGFOLDER/$RUN_FILE
-  printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
+  printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER getinfo
   EOF
+  chmod +x $CONFIGFOLDER/$RUN_FILE
 }
 
 function node_count(){
@@ -296,16 +301,16 @@ fi
 
 if [ $NODES = 2 ] || [ $NODES = 3 ]; then
   CONFIGFOLDER='/root/.printex2'
-  cpstuff
+  COIN_NAME=Printex2
   setup_node2
-  setup_check
+  
 fi
 
 if [ $NODES = 3 ];then
   CONFIGFOLDER='/root/.printex3'
-  cpstuff
+  COIN_NAME=Printex3
   setup_node2
-  setup_check
+  
 fi
 
 
