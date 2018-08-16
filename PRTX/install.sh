@@ -190,8 +190,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 
-echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
-read -e NODES
+
 if [[ $NODES = 1 ]]; then
   if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
     echo -e "${RED}$COIN_NAME is already installed.${NC}"
@@ -274,11 +273,17 @@ printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFI
 EOF
 }
 
+function node_count(){
+echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
+read -e NODES
+}
 
 
 ##### Main #####
 clear
 
+
+node_count
 checks
 if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
 echo "PRTX installed with Daemon moving on to set up other nodes if wanted."
