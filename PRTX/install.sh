@@ -259,6 +259,13 @@ function setup_node() {
   configure_systemd
 }
 
+function setup_node2(){
+create_config
+create_key
+update_config
+important_information
+}
+
 function setup_check(){
 sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/check
   cat << EOF >> $CONFIGFOLDER/check
@@ -282,15 +289,13 @@ fi
 
 if [ $NODES = 2 ] || [ $NODES = 3 ]; then
   CONFIGFOLDER='/root/.Printex2'
-  COIN_NAME=Printex2
-  setup_node
+  setup_node2
   setup_check
 fi
 
 if [ $NODES = 3 ];then
 CONFIGFOLDER='/root/.Printex3'
-setup_node
-COIN_NAME=Printex3
+setup_node2
 setup_check
 fi
 
