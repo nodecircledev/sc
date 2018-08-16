@@ -13,6 +13,7 @@ COIN_PID='printex.pid'
 COIN_PORT=9797
 RPC_PORT=9898
 NODES=0
+RUN_FILE='prtxmn'
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -177,7 +178,7 @@ fi
 }
 
 
-function checks() {
+function CHECKS() {
 if [[ $(lsb_release -d) != *16.04* ]]; then
   echo -e "${RED}You are not running Ubuntu 16.04. Installation is cancelled.${NC}"
   exit 1
@@ -267,7 +268,7 @@ important_information
 }
 
 function setup_check(){
-sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/check
+$CONFIGFOLDER/$prtxmn
   cat << EOF >> $CONFIGFOLDER/check
 printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
 EOF
