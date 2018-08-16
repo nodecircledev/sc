@@ -112,7 +112,6 @@ function create_key() {
   fi
   $COIN_PATH$COIN_CLI stop
 fi
-clear
 }
 
 
@@ -266,8 +265,7 @@ important_information
 }
 
 function setup_check(){
-$CONFIGFOLDER/$prtxmn
-  cat << EOF >> $CONFIGFOLDER/check
+  cat << EOF >> $CONFIGFOLDER/$prtxmn
 printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
 EOF
 }
@@ -277,6 +275,10 @@ echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
 read -e NODES
 }
 
+function cpstuff(){
+cp -ar /root/.printex $CONFIGFOLDER/
+rm $CONFIGFOLDER/$CONFIG_FILE
+}
 
 ##### Main #####
 clear
@@ -293,13 +295,14 @@ else
 fi
 
 if [ $NODES = 2 ] || [ $NODES = 3 ]; then
-  CONFIGFOLDER='/root/.Printex2'
+  CONFIGFOLDER='/root/.printex2'
+  cpstuff()
   setup_node2
   setup_check
 fi
 
 if [ $NODES = 3 ];then
-CONFIGFOLDER='/root/.Printex3'
+CONFIGFOLDER='/root/.printex3'
 setup_node2
 setup_check
 fi
