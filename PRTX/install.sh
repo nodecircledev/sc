@@ -258,26 +258,26 @@ function setup_node() {
 }
 
 function setup_node2(){
-create_config
-create_key
-update_config
-important_information
+  create_config
+  create_key
+  update_config
+  important_information
 }
 
 function setup_check(){
-  cat << EOF >> $CONFIGFOLDER/$prtxmn
-printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
-EOF
+  cat << EOF >> $CONFIGFOLDER/$RUN_FILE
+  printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER 
+  EOF
 }
 
 function node_count(){
-echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
-read -e NODES
+  echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
+  read -e NODES
 }
 
 function cpstuff(){
-cp -ar /root/.printex $CONFIGFOLDER/
-rm $CONFIGFOLDER/$CONFIG_FILE
+  cp -ar /root/.printex $CONFIGFOLDER/
+  rm $CONFIGFOLDER/$CONFIG_FILE
 }
 
 ##### Main #####
