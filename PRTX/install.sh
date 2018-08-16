@@ -260,6 +260,7 @@ function setup_node() {
 function setup_node2(){
   cpstuff
   setup_check
+  chmod +x $CONFIGFOLDER/$RUN_FILE
   create_config
   create_key
   update_config
@@ -269,10 +270,9 @@ function setup_node2(){
 }
 
 function setup_check(){
-  cat << EOF >> $CONFIGFOLDER/$RUN_FILE
+  cat << EOF > $CONFIGFOLDER/$RUN_FILE
   printex-cli -daemon -conf=/root/$CONFIGFOLDER/$CONFIG_FILE -datadir=/root/$CONFIGFOLDER getinfo
   EOF
-  chmod +x $CONFIGFOLDER/$RUN_FILE
 }
 
 function node_count(){
