@@ -307,7 +307,7 @@ else
   setup_node
 fi
 
-if [ $NODES > 1 ] then
+if [[ $NODES > 1 ]] then
  for i in {2..$NODES..1}
   do 
     ((RPC_PORT++))
