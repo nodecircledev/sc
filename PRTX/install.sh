@@ -310,8 +310,8 @@ fi
 if [ $NODES > 1 ] then
  for i in {2..$NODES..1}
   do 
-    RPC_PORT++
-    COIN_PORT++   
+    ((RPC_PORT++))
+    ((COIN_PORT++))  
     CONFIGFOLDER='/root/.printex$i'
     COIN_NAME=Printex$i
     setup_node2
