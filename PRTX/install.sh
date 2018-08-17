@@ -54,7 +54,8 @@ Restart=always
 PrivateTmp=true
 TimeoutStopSec=60s
 TimeoutStartSec=10s
-StartLimitInterval=120s
+RestartSec=1
+StartLimitInterval=4s
 StartLimitBurst=5
 
 [Install]
@@ -301,6 +302,8 @@ else
 fi
 
 if [ $NODES = 2 ] || [ $NODES = 3 ]; then
+ RPC_PORT=9899
+  COIN_PORT=9798
   CONFIGFOLDER='/root/.printex2'
   COIN_NAME=Printex2
   setup_node2
@@ -308,7 +311,9 @@ if [ $NODES = 2 ] || [ $NODES = 3 ]; then
 fi
 
 if [ $NODES = 3 ];then
-  CONFIGFOLDER='/root/.printex3'
+ RPC_PORT=9998
+ COIN_PORT=9799
+ CONFIGFOLDER='/root/.printex3'
   COIN_NAME=Printex3
   setup_node2
   
