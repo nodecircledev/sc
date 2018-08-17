@@ -246,7 +246,6 @@ function important_information() {
   echo -e "${RED}Sentinel${NC} is installed in ${RED}$CONFIGFOLDER/sentinel${NC}"
   echo -e "Sentinel logs is: ${RED}$CONFIGFOLDER/sentinel.log${NC}"
  fi
- echo -e "Thanks for https://github.com/zoldur/Printex and Boumba#3326 on Discord for Base."
  echo -e "Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6"
  echo -e "================================================================================================================================"
 }
