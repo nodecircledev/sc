@@ -309,7 +309,7 @@ else
 fi
 
 if [ "$NODES" -gt "1" ]; then
- for i in {2..$NODES..1}
+ while [ $COUNT -lt $NODES ]; 
   do 
     ((RPC_PORT++))
     ((COIN_PORT++))  
