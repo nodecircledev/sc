@@ -15,7 +15,6 @@ RPC_PORT=9898
 NODES=0
 RUN_FILE='prtxmn_getinfo'
 RUN_FIL='prtxmn_status'
-COUNT=0
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -285,7 +284,7 @@ EOF
 }
 
 function node_count(){
-  echo -e "How many nodes are you wanting to setup (NOTE: ONLY UP TO 3)?"
+  echo -e "How many nodes are you wanting to setup ${RED}(NOTE: ONLY UP TO 5 PER A VPS TO STAY STABLE ADD MORE AT YOUR OWN RISK)${NC}?"
   read -e NODES
 }
 
@@ -310,12 +309,12 @@ fi
 
 if [ $NODES > 1 ] then
  
- for i in {2..5..1}
+ for i in {2..$NODES..1}
   do 
     RPC_PORT++
     COIN_PORT++   
-    CONFIGFOLDER='/root/.printex$COUNT'
-    COIN_NAME=Printex$COUNT
+    CONFIGFOLDER='/root/.printex$i'
+    COIN_NAME=Printex$i
     setup_node2
   done
 fi
