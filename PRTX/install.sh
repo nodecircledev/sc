@@ -246,7 +246,7 @@ function important_information() {
   echo -e "Sentinel logs is: ${RED}$CONFIGFOLDER/sentinel.log${NC}"
  fi
  echo -e "Thanks for https://github.com/zoldur/Printex and Boumba#3326 on Discord for Base."
- echo -e "Thanks for donations on PRTX: pCRNk4f3LK584LNrUudW5Rqb4Vkv4NiJqR"
+ echo -e "Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6"
  echo -e "================================================================================================================================"
 }
 
@@ -308,7 +308,6 @@ else
 fi
 
 if [ $NODES > 1 ] then
- 
  for i in {2..$NODES..1}
   do 
     RPC_PORT++
