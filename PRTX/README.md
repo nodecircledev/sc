@@ -39,4 +39,4 @@ If you get an error saying invalid ip, open tools / debug console and type start
 ### ** IF YOU ARE USING UBUNTU DESKTOP, THERE IS AN EXTRA STEP TO BE DONE FOR THE CLI TO WORK **
 cp /root/.printex/printex.conf /home/your_username/.printex/printex.conf
 
-Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6
+# Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6
