@@ -10,7 +10,8 @@ Install type:
     wget https://raw.githubusercontent.com/rarealton/masternode-scripts/master/PRTX/install.sh
     bash install.sh
 
-This script will let you choose up to 5 masternodes to set up on one vps running UBUNTU 16.04
+This script will let you choose as many masternodes you want and will set them up on one vps running UBUNTU 16.04
+(5 is the max I recmond on one vps for now)
 
 Save each PRIVATEKEY for Later use
 
@@ -36,11 +37,13 @@ Start Masternode in Masternode Tab.
 
 If you get an error saying invalid ip, open tools / debug console and type startmasternode alias 0 MN1
 
+Also each new node will be added under a file called .printex2, .printex3, etc for how ever many nodes you have. Two files were added into each of them so you can use the command getinfo or masternode status real easily. 
+
+To run those commands just go inside the file for the node you want and in the terminal type ./prxtmn_getinfo to use the "getinfo" command or ./prtxmn_status for the "masternode status" command. 
+
 ### ** IF YOU ARE USING UBUNTU DESKTOP, THERE IS AN EXTRA STEP TO BE DONE FOR THE CLI TO WORK **
 cp /root/.printex/printex.conf /home/your_username/.printex/printex.conf
 
- Also each new node will be added under a file called .printex2, .printex3, etc for how ever many nodes you have. Two files were added into each of them so you can use the command getinfo or masternode status real easily. 
 
-To run those commands just go inside the file for the node you want and in the terminal type ./prxtmn_getinfo to use the "getinfo" command or ./prtxmn_status for the "masternode status" command. 
 
 ##### Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6
