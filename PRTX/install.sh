@@ -13,7 +13,9 @@ COIN_PID='printex.pid'
 COIN_PORT=9797
 RPC_PORT=9898
 NODES=0
-RUN_FILE='prtxmn'
+RUN_FILE='prtxmn_getinfo'
+RUN_FIL='prtxmn_status'
+COUNT=0
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -275,6 +277,11 @@ function setup_check(){
 cat << EOF > $CONFIGFOLDER/$RUN_FILE
 printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER getinfo
 EOF
+
+cat << EOF > $CONFIGFOLDER/$RUN_FIL
+printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER masternode status
+EOF
+
 }
 
 function node_count(){
@@ -301,22 +308,14 @@ else
   setup_node
 fi
 
-if [ $NODES = 2 ] || [ $NODES = 3 ]; then
- RPC_PORT=9899
-  COIN_PORT=9798
-  CONFIGFOLDER='/root/.printex2'
-  COIN_NAME=Printex2
-  setup_node2
-  
+if [ $NODES > 1 ] then
+ 
+ for i in {2..5..1}
+  do 
+    RPC_PORT++
+    COIN_PORT++   
+    CONFIGFOLDER='/root/.printex$COUNT'
+    COIN_NAME=Printex$COUNT
+    setup_node2
+  done
 fi
-
-if [ $NODES = 3 ];then
- RPC_PORT=9998
- COIN_PORT=9799
- CONFIGFOLDER='/root/.printex3'
-  COIN_NAME=Printex3
-  setup_node2
-  
-fi
-
-
