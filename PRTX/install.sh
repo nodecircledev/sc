@@ -313,10 +313,10 @@ if [ "$NODES" -gt "1" ]; then
   do 
     ((RPC_PORT++))
     ((COIN_PORT++))  
-    CONFIGFOLDER = "/root/.printex"
-    CONFIGFOLDER = "$CONFIGFOLDER$COUNT"
-    COIN_NAME= "Printex"
-    COIN_NAME="$COINNAME$COUNT"
+    CONFIGFOLDER='/root/.printex'
+    CONFIGFOLDER='$CONFIGFOLDER$COUNT'
+    COIN_NAME='Printex'
+    COIN_NAME='$COIN_NAME$COUNT'
     setup_node2
     ((COUNT++))
   done
