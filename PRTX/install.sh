@@ -15,6 +15,7 @@ RPC_PORT=9898
 NODES=0
 RUN_FILE='prtxmn_getinfo'
 RUN_FIL='prtxmn_status'
+COUNT=2
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -312,8 +313,8 @@ if [ "$NODES" -gt "1" ]; then
   do 
     ((RPC_PORT++))
     ((COIN_PORT++))  
-    CONFIGFOLDER='/root/.printex$i'
-    COIN_NAME=Printex$i
+    CONFIGFOLDER='/root/.printex$COUNT'
+    COIN_NAME='Printex$COUNT'
     setup_node2
   done
 fi
