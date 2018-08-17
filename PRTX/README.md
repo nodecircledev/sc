@@ -39,6 +39,7 @@ If you get an error saying invalid ip, open tools / debug console and type start
 ### ** IF YOU ARE USING UBUNTU DESKTOP, THERE IS AN EXTRA STEP TO BE DONE FOR THE CLI TO WORK **
 cp /root/.printex/printex.conf /home/your_username/.printex/printex.conf
 
- Also there each new node will be added under a file called .printex2, .printex3, etc for how ever many nodes you have. Two files were added into each of them so you can use the command getinfo or masternode status real easily. To run those commands just go inside the file for the node you want and in the terminal type ./prxtmn_getinfo to use the "getinfo" command or ./prtxmn_status for the "masternode status" command. 
+ Also each new node will be added under a file called .printex2, .printex3, etc for how ever many nodes you have. Two files were added into each of them so you can use the command getinfo or masternode status real easily. 
+ To run those commands just go inside the file for the node you want and in the terminal type ./prxtmn_getinfo to use the "getinfo" command or ./prtxmn_status for the "masternode status" command. 
 
 ##### Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6
