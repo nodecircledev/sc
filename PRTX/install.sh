@@ -263,7 +263,6 @@ function setup_node() {
 function setup_node2(){
   cpstuff
   setup_check
-  chmod +x $CONFIGFOLDER/$RUN_FILE
   create_config
   create_key
   update_config
@@ -276,12 +275,12 @@ function setup_check(){
 cat << EOF > $CONFIGFOLDER/$RUN_FILE
 printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER getinfo
 EOF
-
+  chmod +x $CONFIGFOLDER/$RUN_FILE
 cat << EOF > $CONFIGFOLDER/$RUN_FIL
 printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER masternode status
 EOF
-
-}
+    chmod +x $CONFIGFOLDER/$RUN_FIL
+    }
 
 function node_count(){
   echo -e "How many nodes are you wanting to setup ${RED}(NOTE: ONLY UP TO 5 PER A VPS TO STAY STABLE ADD MORE AT YOUR OWN RISK)${NC}?"
