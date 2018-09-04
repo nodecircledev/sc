@@ -315,7 +315,10 @@ if [ "$NODES" -gt "1" ]; then
     CONFIGFOLDER+="$COUNT"
     COIN_NAME="Printex"
     COIN_NAME+="$COUNT"
-    setup_node2
+    if [ ! -d "$CONFIGFOLDER" ]; then
+ setup_node2
+fi
+    
     ((COUNT++))
   done
 fi
