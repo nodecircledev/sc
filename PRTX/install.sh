@@ -1,20 +1,20 @@
 #!/bin/bash
 
 TMP_FOLDER=$(mktemp -d)
-CONFIG_FILE='printex.conf'
-CONFIGFOLDER='/root/.printex'
-COIN_DAEMON='printexd'
-COIN_CLI='printex-cli'
+CONFIG_FILE='smrtc.conf'
+CONFIGFOLDER='/root/.smrtc'
+COIN_DAEMON='smrtcd'
+COIN_CLI='smrtc-cli'
 COIN_PATH='/usr/local/bin/'
-COIN_TGZ='https://github.com/Printex-official/printex-core/releases/download/v1.0.0.0/lin-daemon.zip'
+COIN_TGZ='https://github.com/nodecircledev/smartcloud/releases/download/smartcloudrelease/lin-daemon.zip'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
-COIN_NAME='Printex'
-COIN_PID='printex.pid'
-COIN_PORT=9797
-RPC_PORT=9898
+COIN_NAME='SmartCloud'
+COIN_PID='smartcloud.pid'
+COIN_PORT=9887
+RPC_PORT=9886
 NODES=0
-RUN_FILE='prtxmn_getinfo'
-RUN_FIL='prtxmn_status'
+RUN_FILE='smrtcmn_getinfo'
+RUN_FIL='smrtcmn_status'
 COUNT=2
 
 NODEIP=$(curl -s4 api.ipify.org)
@@ -127,11 +127,11 @@ maxconnections=256
 masternode=1
 externalip=$NODEIP:$COIN_PORT
 masternodeprivkey=$COINKEY
-addnode=118.184.105.17
-addnode=188.213.31.22
-addnode=45.76.230.226
-addnode=173.170.21.37
-addnode=seed.boumba.linkpc.net
+addnode=139.99.159.113
+addnode=139.99.196.73
+addnode=139.99.202.60
+addnode=139.99.197.112
+addnode=139.99.158.38
 EOF
 }
 
@@ -246,7 +246,7 @@ function important_information() {
   echo -e "${RED}Sentinel${NC} is installed in ${RED}$CONFIGFOLDER/sentinel${NC}"
   echo -e "Sentinel logs is: ${RED}$CONFIGFOLDER/sentinel.log${NC}"
  fi
- echo -e "Thanks for donations on PRTX: pQm8iRi7PADKHPCiBH2D6zUdnigkXdtPv6"
+ echo -e "Thanks for donations on SMRTC: ScsAMwGy3FpCNtguXG3xQCGJdvppQWxz8z"
  echo -e "================================================================================================================================"
 }
 
@@ -273,11 +273,11 @@ function setup_node2(){
 
 function setup_check(){
 cat << EOF > $CONFIGFOLDER/$RUN_FILE
-printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER getinfo
+smrtc-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER getinfo
 EOF
   chmod +x $CONFIGFOLDER/$RUN_FILE
 cat << EOF > $CONFIGFOLDER/$RUN_FIL
-printex-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER masternode status
+smrtc-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER masternode status
 EOF
     chmod +x $CONFIGFOLDER/$RUN_FIL
     }
@@ -288,7 +288,7 @@ function node_count(){
 }
 
 function cpstuff(){
-  cp -ar /root/.printex $CONFIGFOLDER/
+  cp -ar /root/.smrtc $CONFIGFOLDER/
   rm $CONFIGFOLDER/$CONFIG_FILE
 }
 
@@ -299,7 +299,7 @@ clear
 node_count
 checks
 if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
-echo "PRTX installed with Daemon moving on to set up other nodes if wanted."
+echo "SMRTC installed with Daemon moving on to set up other nodes if wanted."
 else
   prepare_system
   download_node
@@ -311,9 +311,9 @@ if [ "$NODES" -gt "1" ]; then
   do 
     ((RPC_PORT++))
     ((COIN_PORT++))  
-    CONFIGFOLDER='/root/.printex'
+    CONFIGFOLDER='/root/.smrtc'
     CONFIGFOLDER+="$COUNT"
-    COIN_NAME="Printex"
+    COIN_NAME="SmartCloud"
     COIN_NAME+="$COUNT"
     if [ ! -d "$CONFIGFOLDER" ]; then
  setup_node2
