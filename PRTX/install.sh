@@ -1,20 +1,179 @@
 #!/bin/bash
 
 TMP_FOLDER=$(mktemp -d)
-CONFIG_FILE="smrtc.conf"
-BINARY_FILE="/usr/local/bin/smartcd"
-CROP_REPO="https://github.com/SMRT-Cloud/smrtc.git"
-COIN_TGZ='https://github.com/telostia/smartcloud-guides/releases/download/0.001/smrtc-linux.tar.gz'
+CONFIG_FILE='smrtc.conf'
+CONFIGFOLDER='/root/.smrtc'
+COIN_DAEMON='smrtcd'
+COIN_CLI='smrtc-cli'
+COIN_PATH='/usr/local/bin/'
+COIN_TGZ='https://github.com/nodecircledev/smartcloud/releases/download/smartcloudrelease/lin-daemon.zip'
+COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
+COIN_NAME='Smartcloud'
+COIN_PID='smartcloud.pid'
+COIN_PORT=9887
+RPC_PORT=9886
+NODES=0
+RUN_FILE='smrtcmn_getinfo'
+RUN_FIL='smrtcmn_status'
+COUNT=2
+
+NODEIP=$(curl -s4 api.ipify.org)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
+function download_node() {
+  echo -e "Prepare to download ${GREEN}$COIN_NAME${NC}."
+  cd $TMP_FOLDER >/dev/null 2>&1
+  wget -q $COIN_TGZ
+  compile_error
+  chmod +x $COIN_ZIP
+  unzip lin-daemon.zip
+  mv smrtc-cli $COIN_PATH && mv smrtcd $COIN_PATH
+  cd - >/dev/null 2>&1
+  rm -rf $TMP_FOLDER >/dev/null 2>&1
+  clear
+}
+
+function configure_systemd() {
+  cat << EOF > /etc/systemd/system/$COIN_NAME.service
+[Unit]
+Description=$COIN_NAME service
+After=network.target
+
+[Service]
+User=root
+Group=root
+
+Type=forking
+#PIDFile=$CONFIGFOLDER/Smartcloud.pid
+
+ExecStart=$COIN_PATH$COIN_DAEMON -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER -pid=$CONFIGFOLDER/$COIN_PID
+ExecStop=-$COIN_PATH$COIN_CLI -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER stop
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=10s
+RestartSec=1
+StartLimitInterval=4s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  systemctl daemon-reload
+  sleep 3
+  systemctl start $COIN_NAME.service
+  systemctl enable $COIN_NAME.service >/dev/null 2>&1
+
+  if [[ -z "$(ps axo cmd:100 | egrep $COIN_DAEMON)" ]]; then
+    echo -e "${RED}$COIN_NAME is not running${NC}, please investigate. You should start by running the following commands as root:"
+    echo -e "${GREEN}systemctl start $COIN_NAME.service"
+    echo -e "systemctl status $COIN_NAME.service"
+    echo -e "less /var/log/syslog${NC}"
+    exit 1
+  fi
+}
+
+
+function create_config() {
+  mkdir $CONFIGFOLDER >/dev/null 2>&1
+  RPCUSER=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w10 | head -n1)
+  RPCPASSWORD=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w22 | head -n1)
+  cat << EOF > $CONFIGFOLDER/$CONFIG_FILE
+rpcuser=$RPCUSER
+rpcpassword=$RPCPASSWORD
+rpcport=$RPC_PORT
+rpcallowip=127.0.0.1
+listen=1
+server=1
+daemon=1
+port=$COIN_PORT
+EOF
+}
+
+
+function create_key() {
+  echo -e "Enter your ${RED}$COIN_NAME Masternode Private Key${NC}. Leave it blank to generate a new ${RED}Masternode Private Key${NC} for you:"
+  read -e COINKEY
+  if [[ -z "$COINKEY" ]]; then
+  $COIN_PATH$COIN_DAEMON -daemon
+  sleep 30
+  if [ -z "$(ps axo cmd:100 | grep $COIN_DAEMON)" ]; then
+   echo -e "${RED}$COIN_NAME server couldn not start. Check /var/log/syslog for errors.{$NC}"
+   exit 1
+  fi
+  COINKEY=$($COIN_PATH$COIN_CLI masternode genkey)
+  if [ "$?" -gt "0" ];
+    then
+    echo -e "${RED}Wallet not fully loaded. Let us wait and try again to generate the Private Key${NC}"
+    sleep 30
+    COINKEY=$($COIN_PATH$COIN_CLI masternode genkey)
+  fi
+  $COIN_PATH$COIN_CLI stop
+fi
+}
+
+
+function update_config() {
+  sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/$CONFIG_FILE
+  cat << EOF >> $CONFIGFOLDER/$CONFIG_FILE
+logintimestamps=1
+maxconnections=256
+#bind=$NODEIP
+masternode=1
+externalip=$NODEIP:$COIN_PORT
+masternodeprivkey=$COINKEY
+addnode=139.99.159.113
+addnode=139.99.196.73
+addnode=139.99.202.60
+addnode=139.99.197.112
+addnode=139.99.158.38
+EOF
+}
+
+
+function enable_firewall() {
+  echo -e "Installing and setting up firewall to allow ingress on port ${GREEN}$COIN_PORT${NC}"
+  ufw allow $COIN_PORT/tcp comment "$COIN_NAME MN port" >/dev/null
+  ufw allow ssh comment "SSH" >/dev/null 2>&1
+  ufw limit ssh/tcp >/dev/null 2>&1
+  ufw default allow outgoing >/dev/null 2>&1
+  echo "y" | ufw enable >/dev/null 2>&1
+}
+
+
+function get_ip() {
+  declare -a NODE_IPS
+  for ips in $(netstat -i | awk '!/Kernel|Iface|lo/ {print $1," "}')
+  do
+    NODE_IPS+=($(curl --interface $ips --connect-timeout 2 -s4 api.ipify.org))
+  done
+
+  if [ ${#NODE_IPS[@]} -gt 1 ]
+    then
+      echo -e "${GREEN}More than one IP. Please type 0 to use the first IP, 1 for the second and so on...${NC}"
+      INDEX=0
+      for ip in "${NODE_IPS[@]}"
+      do
+        echo ${INDEX} $ip
+        let INDEX=${INDEX}+1
+      done
+      read -e choose_ip
+      NODEIP=${NODE_IPS[$choose_ip]}
+  else
+    NODEIP=${NODE_IPS[0]}
+  fi
+}
+
 
 function compile_error() {
 if [ "$?" -gt "0" ];
  then
-  echo -e "${RED}Failed to compile $@. Please investigate.${NC}"
+  echo -e "${RED}Failed to compile $COIN_NAME. Please investigate.${NC}"
   exit 1
 fi
 }
@@ -31,20 +190,21 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-if [ -n "$(pidof cropcoind)" ]; then
-  echo -e "${GREEN}\c"
-  read -e -p "smrtcd is already running. Do you want to add another MN? [Y/N]" NEW_SMRTC
-  echo -e "{NC}"
-  clear
-else
-  NEW_SMRTC="new"
+
+
+if [[ $NODES = 1 ]]; then
+  if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
+    echo -e "${RED}$COIN_NAME is already installed.${NC}"
+    exit 1
+  fi
 fi
 }
 
-function prepare_system() {
 
-echo -e "Prepare the system to install SmartCloud master node."
+function prepare_system() {
+echo -e "Prepare the system to install ${GREEN}$COIN_NAME${NC} master node."
 apt-get update >/dev/null 2>&1
+DEBIAN_FRONTEND=noninteractive apt-get update > /dev/null 2>&1
 DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -qq upgrade >/dev/null 2>&1
 apt install -y software-properties-common >/dev/null 2>&1
 echo -e "${GREEN}Adding bitcoin PPA repository"
@@ -53,9 +213,8 @@ echo -e "Installing required packages, it may take some time to finish.${NC}"
 apt-get update >/dev/null 2>&1
 apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" make software-properties-common \
 build-essential libtool autoconf libssl-dev libboost-dev libboost-chrono-dev libboost-filesystem-dev libboost-program-options-dev \
-libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git wget pwgen curl libdb4.8-dev bsdmainutils \
-libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw pwgen
-clear
+libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git wget curl libdb4.8-dev bsdmainutils libdb4.8++-dev \
+libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev  libdb5.3++ unzip libzmq5 >/dev/null 2>&1
 if [ "$?" -gt "0" ];
   then
     echo -e "${RED}Not all required packages were installed properly. Try to install them manually by running the following commands:${NC}\n"
@@ -64,232 +223,102 @@ if [ "$?" -gt "0" ];
     echo "apt-add-repository -y ppa:bitcoin/bitcoin"
     echo "apt-get update"
     echo "apt install -y make build-essential libtool software-properties-common autoconf libssl-dev libboost-dev libboost-chrono-dev libboost-filesystem-dev \
-libboost-program-options-dev libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git pwgen curl libdb4.8-dev \
-bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw"
+libboost-program-options-dev libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git curl libdb4.8-dev \
+bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev libdb5.3++ unzip libzmq5"
  exit 1
 fi
-
-clear
-echo -e "Checking if swap space is needed."
-PHYMEM=$(free -g|awk '/^Mem:/{print $2}')
-SWAP=$(swapon -s)
-if [[ "$PHYMEM" -lt "2" && -z "$SWAP" ]];
-  then
-    echo -e "${GREEN}Server is running with less than 2G of RAM, creating 2G swap file.${NC}"
-    dd if=/dev/zero of=/swapfile bs=1024 count=2M
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon -a /swapfile
-else
-  echo -e "${GREEN}The server running with at least 2G of RAM, or SWAP exists.${NC}"
-fi
 clear
 }
 
-function deploy_binaries() {
-  cd $TMP
-  wget -q $COIN_TGZ >/dev/null 2>&1
-  gunzip cropcoind.gz >/dev/null 2>&1
-  chmod +x smrtcd >/dev/null 2>&1
-  cp smrtcd /usr/local/bin/ >/dev/null 2>&1
-}
 
-function ask_permission() {
- echo -e "${RED}I trust NodeCircle and want to use binaries compiled on his server.${NC}."
- echo -e "Please type ${RED}YES${NC} if you want to use precompiled binaries, or type anything else to compile them on your server"
- read -e NodeCircle
-}
-
-function compile_smartcloud() {
-  echo -e "Clone git repo and compile it. This may take some time. Press a key to continue."
-  read -n 1 -s -r -p ""
-
-  git clone $SMRTC_REPO $TMP_FOLDER
-  cd $TMP_FOLDER/src
-  mkdir obj/support
-  mkdir obj/crypto
-  make -f makefile.unix
-  compile_error smartcloud
-  cp -a smrtcd $BINARY_FILE
-  clear
-}
-
-function enable_firewall() {
-  echo -e "Installing and setting up firewall to allow incomning access on port ${GREEN}$CROPCOINPORT${NC}"
-  ufw allow $SMARTCLOUDPORT/tcp comment "SmartCloud MN port" >/dev/null
-  ufw allow $[SMARTCLOUDPORT+1]/tcp comment "SmartCloud RPC port" >/dev/null
-  ufw allow ssh >/dev/null 2>&1
-  ufw limit ssh/tcp >/dev/null 2>&1
-  ufw default allow outgoing >/dev/null 2>&1
-  echo "y" | ufw enable >/dev/null 2>&1
-}
-
-function systemd_cropcoin() {
-  cat << EOF > /etc/systemd/system/$SMARTCLOUDUSER.service
-[Unit]
-Description=SmartCloud service
-After=network.target
-[Service]
-Type=forking
-User=$SMARTCLOUDUSER
-Group=$SMARTCLOUDUSER
-WorkingDirectory=$SMARTCLOUDHOME
-ExecStart=$BINARY_FILE -daemon
-ExecStop=$BINARY_FILE stop
-Restart=always
-PrivateTmp=true
-TimeoutStopSec=60s
-TimeoutStartSec=10s
-StartLimitInterval=120s
-StartLimitBurst=5
-[Install]
-WantedBy=multi-user.target
-EOF
-
-  systemctl daemon-reload
-  sleep 3
-  systemctl start $SMARTCLOUDUSER.service
-  systemctl enable $SMARTCLOUDUSER.service >/dev/null 2>&1
-
-  if [[ -z $(pidof smrtcd) ]]; then
-    echo -e "${RED}smrtcd is not running${NC}, please investigate. You should start by running the following commands as root:"
-    echo "systemctl start $SMARTCLOUDUSER.service"
-    echo "systemctl status $SMARTCLOUDUSER.service"
-    echo "less /var/log/syslog"
-    exit 1
-  fi
-}
-
-function ask_port() {
-DEFAULTSMARTCLOUDPORT=17720
-read -p "SMARTCLOUD Port: " -i $DEFAULTSMARTCLOUDPORT -e SMARTCLOUDPORT
-: ${SMARTCLOUDPORT:=$DEFAULTSMARTCLOUDPORT}
-}
-
-function ask_user() {
-  DEFAULTSMARTCLOUDUSER="smartcloud"
-  read -p "Cropcoin user: " -i $DEFAULTSMARTCLOUDUSER -e SMARTCLOUDUSER
-  : ${SMARTCLOUDUSER:=$DEFAULTSMARTCLOUDUSER}
-
-  if [ -z "$(getent passwd $SMARTCLOUDUSER)" ]; then
-    useradd -m $SMARTCLOUDUSER
-    USERPASS=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w12 | head -n1)
-    echo "$SMARTCLOUDUSER:$USERPASS" | chpasswd
-
-    SMARTCLOUDHOME=$(sudo -H -u $SMARTCLOUDUSER bash -c 'echo $HOME')
-    DEFAULTCROPCOINFOLDER="$SMARTCLOUDHOME/.smrtc"
-    read -p "Configuration folder: " -i $DEFAULTSMARTCLOUDFOLDER -e SMARTCLOUDFOLDER
-    : ${SMARTCLOUDFOLDER:=$DEFAULTSMARTCLOUDFOLDER}
-    mkdir -p $SMARTCLOUDFOLDER
-    chown -R $SMARTCLOUDUSER: $SMARTCLOUDFOLDER >/dev/null
-  else
-    clear
-    echo -e "${RED}User exits. Please enter another username: ${NC}"
-    ask_user
-  fi
-}
-
-function check_port() {
-  declare -a PORTS
-  PORTS=($(netstat -tnlp | awk '/LISTEN/ {print $4}' | awk -F":" '{print $NF}' | sort | uniq | tr '\r\n'  ' '))
-  ask_port
-
-  while [[ ${PORTS[@]} =~ $SMARTCLOUDPORT ]] || [[ ${PORTS[@]} =~ $[SMARTCLOUDPORT+1] ]]; do
-    clear
-    echo -e "${RED}Port in use, please choose another port:${NF}"
-    ask_port
-  done
-}
-
-function create_config() {
-  RPCUSER=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w10 | head -n1)
-  RPCPASSWORD=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w22 | head -n1)
-  cat << EOF > $SMARTCLOUDFOLDER/$CONFIG_FILE
-rpcuser=$RPCUSER
-rpcpassword=$RPCPASSWORD
-rpcallowip=127.0.0.1
-rpcport=$[SMARTCLOUDPORT+1]
-listen=1
-server=1
-daemon=1
-port=$SMARTCLOUDPORT
-EOF
-}
-
-function create_key() {
-  echo -e "Enter your ${RED}Masternode Private Key${NC}. Leave it blank to generate a new ${RED}Masternode Private Key${NC} for you:"
-  read -e SMARTCLOUDKEY
-  if [[ -z "$SMARTCLOUDKEY" ]]; then
-  sudo -u $SMARTCLOUDUSER /usr/local/bin/smrtcd -conf=$SMARTCLOUDFOLDER/$CONFIG_FILE -datadir=$SMARTCLOUDFOLDER
-  sleep 5
-  if [ -z "$(pidof smrtcd)" ]; then
-   echo -e "${RED}smrtcd server couldn't start. Check /var/log/syslog for errors.{$NC}"
-   exit 1
-  fi
-  SMARTCLOUDKEY=$(sudo -u $SMARTCLOUDUSER $BINARY_FILE -conf=$SMARTCLOUDFOLDER/$CONFIG_FILE -datadir=$SMARTCLOUDFOLDER masternode genkey)
-  sudo -u $SMARTCLOUDUSER $BINARY_FILE -conf=$SMARTCLOUDFOLDER/$CONFIG_FILE -datadir=$SMARTCLOUDFOLDER stop
-fi
-}
-
-function update_config() {
-  sed -i 's/daemon=1/daemon=0/' $SMARTCLOUDFOLDER/$CONFIG_FILE
-  NODEIP=$(curl -s4 api.ipify.org)
-  cat << EOF >> $SMARTCLOUDFOLDER/$CONFIG_FILE
-logtimestamps=1
-maxconnections=256
-masternode=1
-masternodeaddr=$NODEIP:$SMARTCLOUDPORT
-masternodeprivkey=$SMARTCLOUDKEY
-addnode=139.99.159.113
-addnode=139.99.196.73
-addnode=139.99.202.60
-addnode=139.99.197.112
-EOF
-  chown -R $SMARTCLOUDUSER: $SMARTCLOUDFOLDER >/dev/null
-}
 
 function important_information() {
- echo
  echo -e "================================================================================================================================"
- echo -e "SmartCloud Masternode is up and running as user ${GREEN}$SMARTCLOUDUSER${NC} and it is listening on port ${GREEN}$SMARTCLOUDPORT${NC}."
- echo -e "${GREEN}$SMARTCLOUDUSER${NC} password is ${RED}$USERPASS${NC}"
- echo -e "Configuration file is: ${RED}$SMARTCLOUDFOLDER/$CONFIG_FILE${NC}"
- echo -e "Start: ${RED}systemctl start $SMARTCLOUDUSER.service${NC}"
- echo -e "Stop: ${RED}systemctl stop $SMARTCLOUDUSER.service${NC}"
- echo -e "VPS_IP:PORT ${RED}$NODEIP:$SMARTCLOUDPORT${NC}"
- echo -e "MASTERNODE PRIVATEKEY is: ${RED}$SMARTCLOUDKEY${NC}"
+ echo -e "$COIN_NAME Masternode is up and running listening on port ${RED}$COIN_PORT${NC}."
+ echo -e "Configuration file is: ${RED}$CONFIGFOLDER/$CONFIG_FILE${NC}"
+ echo -e "Start: ${RED}systemctl start $COIN_NAME.service${NC}"
+ echo -e "Stop: ${RED}systemctl stop $COIN_NAME.service${NC}"
+ echo -e "VPS_IP:PORT ${RED}$NODEIP:$COIN_PORT${NC}"
+ echo -e "MASTERNODE PRIVATEKEY is: ${RED}$COINKEY${NC}"
+ echo -e "Please check ${RED}$COIN_NAME${NC} daemon is running with the following command: ${RED}systemctl status $COIN_NAME.service${NC}"
+ echo -e "Use ${RED}$COIN_CLI masternode status${NC} to check your MN."
+ if [[ -n $SENTINEL_REPO  ]]; then
+  echo -e "${RED}Sentinel${NC} is installed in ${RED}$CONFIGFOLDER/sentinel${NC}"
+  echo -e "Sentinel logs is: ${RED}$CONFIGFOLDER/sentinel.log${NC}"
+ fi
+ echo -e "Thanks for donations on SMRTC: ScsAMwGy3FpCNtguXG3xQCGJdvppQWxz8z"
  echo -e "================================================================================================================================"
 }
 
 function setup_node() {
-  ask_user
-  check_port
+  get_ip
   create_config
   create_key
   update_config
   enable_firewall
-  systemd_smartcloud
   important_information
+  configure_systemd
 }
 
+function setup_node2(){
+  cpstuff
+  setup_check
+  create_config
+  create_key
+  update_config
+  important_information
+  configure_systemd
+  
+}
+
+function setup_check(){
+cat << EOF > $CONFIGFOLDER/$RUN_FILE
+smrtc-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER getinfo
+EOF
+  chmod +x $CONFIGFOLDER/$RUN_FILE
+cat << EOF > $CONFIGFOLDER/$RUN_FIL
+smrtc-cli -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER masternode status
+EOF
+    chmod +x $CONFIGFOLDER/$RUN_FIL
+    }
+
+function node_count(){
+  echo -e "How many nodes are you wanting to setup ${RED}(NOTE: ONLY UP TO 5 PER A VPS TO STAY STABLE ADD MORE AT YOUR OWN RISK)${NC}?"
+  read -e NODES
+}
+
+function cpstuff(){
+  cp -ar /root/.printex $CONFIGFOLDER/
+  rm $CONFIGFOLDER/$CONFIG_FILE
+}
 
 ##### Main #####
 clear
 
+
+node_count
 checks
-if [[ ("$NEW_SMARTCLOUD" == "y" || "$NEW_SMARTCLOUD" == "Y") ]]; then
-  setup_node
-  exit 0
-elif [[ "$NEW_SMARTCLOUD" == "new" ]]; then
-  prepare_system
-  ask_permission
-  if [[ "$NODECIRCLE" == "YES" ]]; then
-    deploy_binaries
-  else
-    compile_smartcloud
-  fi
-  setup_node
+if [ -n "$(pidof $COIN_DAEMON)" ] || [ -e "$COIN_DAEMOM" ] ; then
+echo "SMRTC installed with Daemon moving on to set up other nodes if wanted."
 else
-  echo -e "${GREEN}smrtcd already running.${NC}"
-  exit 0
+  prepare_system
+  download_node
+  setup_node
+fi
+
+if [ "$NODES" -gt "1" ]; then
+ while [ $COUNT -le $NODES ]; 
+  do 
+    ((RPC_PORT++))
+    ((COIN_PORT++))  
+    CONFIGFOLDER='/root/.smrtc'
+    CONFIGFOLDER+="$COUNT"
+    COIN_NAME="Smartcloud"
+    COIN_NAME+="$COUNT"
+    if [ ! -d "$CONFIGFOLDER" ]; then
+ setup_node2
+fi
+    
+    ((COUNT++))
+  done
 fi
