@@ -290,7 +290,7 @@ function node_count(){
 }
 
 function cpstuff(){
-  cp -ar /root/.printex $CONFIGFOLDER/
+  cp -ar /root/.smrtc $CONFIGFOLDER/
   rm $CONFIGFOLDER/$CONFIG_FILE
 }
 
