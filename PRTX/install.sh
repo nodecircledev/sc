@@ -92,7 +92,7 @@ rpcport=$RPC_PORT
 rpcallowip=127.0.0.1
 listen=1
 server=1
-daemon=1
+daemon=0
 port=$COIN_PORT
 EOF
 }
@@ -135,6 +135,11 @@ addnode=104.238.153.244:9887
 addnode=144.202.67.49:9887
 addnode=45.76.244.167:9887
 addnode=107.191.58.12:9887
+addnode=45.77.115.66:9887
+addnode=207.246.115.204:9887
+addnode=108.61.75.151:9887
+addnode=149.28.40.171:9887
+addnode=149.28.46.129:9887
 EOF
 }
 
