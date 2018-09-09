@@ -30,6 +30,8 @@ function download_node() {
   compile_error
   chmod +x $COIN_ZIP
   unzip lin-daemon.zip
+  chmod +x smrtcd*
+  chmod +x smrtc-cli*
   mv smrtc-cli $COIN_PATH && mv smrtcd $COIN_PATH
   cd - >/dev/null 2>&1
   rm -rf $TMP_FOLDER >/dev/null 2>&1
